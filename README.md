@@ -27,7 +27,7 @@ FixMate is a full-stack web application built to streamline maintenance requests
 
 | Backend             | Frontend     | Database | Auth             | Tools           |
 |---------------------|--------------|----------|------------------|-----------------|
-| Java, Spring Boot   | React.js     | MySQL    | Spring Security + JWT | Postman, Swagger |
+| Java, Spring Boot   | React.js     | MySQL    | Spring Security + JWT | Postman |
 
 ---
 
