@@ -1,5 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { MdDelete } from 'react-icons/md'
+import { deleteTechnicianById, getComplaintsCount } from '../services/technicianService';
+import { AdminContext } from '../context/AdminContext';
+import { IoCopy } from 'react-icons/io5';
+import toast from 'react-hot-toast';
+import { getToastError, getToastSuccess } from '../services/toastService';
 
 const technicianTypes = [
   "Electrician",
@@ -23,12 +28,27 @@ const technicianTypes = [
 const UserTable = ({
     data = []
 }) => {
-
+    const { setTechnicians } = useContext(AdminContext);
     const [filteredData, setFilteredData] = useState([]);
+    const [count, setCount] = useState({});
     const [filters, setFilters] = useState({
         skillType : "",
         statusType : ""
     })
+
+    useEffect(() => {
+      async function fetchComplaintsCount(){
+        try{
+            const response = await getComplaintsCount();
+            setCount(response);
+        } catch(e){
+            getToastError("Error fetchning count");
+        }
+      }
+
+      fetchComplaintsCount();
+    }, [])
+    
 
     useEffect(() => {
         const filterData = data.filter(item=>item.skill.match(filters.skillType) && item.status.match(filters.statusType))
@@ -42,6 +62,20 @@ const UserTable = ({
             [name] : value
         }))
     }
+
+    const deleteTechnician = async (technicianId)=>{
+        if(count[technicianId] > 0){
+            getToastError(`Removal is not allowed as this technician is currently assigned to ${count[technicianId]} tasks.`);
+            return;
+        }
+        try{
+            await deleteTechnicianById(technicianId);
+            setTechnicians(prev=>prev.filter(item=>item.technicianId!==technicianId));
+            getToastSuccess("Technician removed .");
+        }catch(e){
+            getToastError("Error while removing technician .");
+        }
+    }
     
 
     const getStatusText = (status)=>{
@@ -51,6 +85,16 @@ const UserTable = ({
             default : return "text-red-600";
         }
     }
+
+    const getDotedId = (id="")=>{
+        return id.substring(0, 5)+"*****";
+    }
+
+    const copyTechnicianId = (technicianId)=>{
+        navigator.clipboard.writeText(technicianId);
+        getToastSuccess("Id coppied successfully !!!");
+    }
+
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -82,6 +126,9 @@ const UserTable = ({
                             <option value="OFF_DUTY">OFF_DUTY</option>
                         </select>
                     </th>
+                    <th>
+                        Assigned Complaints
+                    </th>
                     <th scope="col" className="px-6 py-3">
                         Action
                     </th>
@@ -92,7 +139,12 @@ const UserTable = ({
                     filteredData.map( (item, ind) => {
                         return <tr key={ind} className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200">
                                     <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        {item.technicianId}
+                                        <div className='flex gap-2'>
+                                            {
+                                                getDotedId(item.technicianId)
+                                            }
+                                            <button className="cursor-pointer" onClick={()=>copyTechnicianId(item.technicianId)}><IoCopy className="w-5 h-5 hover:text-blue-500"/></button>
+                                        </div>
                                     </th>
                                     <td className="px-6 py-4 flex flex-col">
                                         <span>{item.name}</span>
@@ -110,9 +162,14 @@ const UserTable = ({
                                         }
                                     </td>
                                     <td className="px-6 py-4">
+                                        {
+                                            <span className='font-bold'>{count[item.technicianId]??0}</span>
+                                        }
+                                    </td>
+                                    <td className="px-6 py-4">
                                         <button 
                                             className="cursor-pointer"
-                                            // onClick={()=>deleteComplaint(item.complaintId)}
+                                            onClick={()=>deleteTechnician(item.technicianId)}
                                         >
                                             <MdDelete className="h-7 w-7 text-red-600"/>
                                         </button>

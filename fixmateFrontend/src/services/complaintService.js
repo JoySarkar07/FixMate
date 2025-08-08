@@ -83,8 +83,6 @@ export const deleteComplaintById = async (complaintId)=>{
 
 export const updateComplaintById = async (complaintId, data)=>{
   const token = JSON.parse(localStorage.getItem("authData")).token;
-  console.log(complaintId);
-  console.log(data);
   const response = await axios.put(`http://localhost:8000/api/v1/complaint/${complaintId}`, data,
       {
         headers : {

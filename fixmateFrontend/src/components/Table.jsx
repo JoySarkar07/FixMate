@@ -1,7 +1,10 @@
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdAccessTime } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
+import { IoCopy } from "react-icons/io5";
 import { deleteComplaintById, updateComplaintById } from "../services/complaintService";
 import { useEffect, useRef, useState } from "react";
+import { CiCalendarDate } from "react-icons/ci";
+import { getToastError, getToastSuccess } from "../services/toastService";
 
 const Table = ({
   complaints = [],
@@ -14,7 +17,7 @@ const Table = ({
     statusType : "",
     technicianType : ""
   })
-
+  
   useEffect(() => {
     const filterdData = complaints.filter(item=>{
       if(filters.technicianType==="NOT ASSIGNED YET")
@@ -30,11 +33,12 @@ const Table = ({
       const response = await updateComplaintById(item.complaintId, {status:e.target.value});
       const newComplaints = complaints.map(complaint=>{
         if(complaint.complaintId===item.complaintId) return response;
-        return item;
+        return complaint;
       })
       setComplaints(newComplaints);
+      getToastSuccess("Complaint Updated Successfully .");
     }catch(e){
-      console.log(e.message);
+      getToastError("Complaint Updation Failed .");
     }
   }
 
@@ -67,27 +71,53 @@ const Table = ({
       await deleteComplaintById(complaintId);
       const remainCompalints = complaints.filter(item=>item.complaintId!==complaintId);
       setComplaints(remainCompalints);
+      getToastSuccess("Complaint Deleted Successfully .");
     }catch(e){
-      console.log(e.message);
+      getToastError("Complaint Deletion Failed .");
+    }
+  }
+
+  const getComplaintStatusColor = (status)=>{
+    switch (status) {
+      case "PENDING":
+        return "text-yellow-500";      // Waiting for action
+      case "ASSIGNED":
+        return "text-blue-500";        // Assigned but not started
+      case "IN_PROGRESS":
+        return "text-indigo-500";      // Actively being worked on
+      case "RESOLVED":
+        return "text-green-500";       // Fixed, pending closure
+      case "CLOSED":
+        return "text-green-800";        // Completed and archived
+      case "CANCELLED":
+        return "text-red-500";         // Cancelled or invalid
+      default:
+        return "text-gray-400";        // Fallback / unknown status
     }
   }
 
   const getStatusColumn = (item, role)=>{
     switch(role){
       case "TECHNICIAN" : 
-        return <select name="status" id="status" onChange={(e)=>updateComplaintStatus(item, e)}>
-          <option value={item.status}>{item.status}</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="RESOLVED">RESOLVED</option>
-        </select>
+          {
+            return item.status==="CLOSED"
+              ? <h1 className={getComplaintStatusColor(item.status)}>{item.status}</h1>
+              : <select name="status" id="status" onChange={(e)=>updateComplaintStatus(item, e)}>
+                  <option value={item.status}>{item.status}</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="RESOLVED">RESOLVED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+          }
+          
       case "ADMIN" :
         return item.status==="RESOLVED" 
         ? <select name="status" id="status" onChange={(e)=>updateComplaintStatus(item, e)}>
             <option value={item.status}>{item.status}</option>
             <option value="CLOSED">CLOSED</option>
           </select>
-        : item.status
-      default : return item.status;
+        : <h1 className={getComplaintStatusColor(item.status)}>{item.status}</h1>
+      default : return <h1 className={getComplaintStatusColor(item.status)}>{item.status}</h1>;
     }
   }
 
@@ -141,6 +171,33 @@ const Table = ({
     }
   }
 
+  const getDotedId = (id="")=>{
+    return id.substring(0, 5)+"*****";
+  }
+
+  const copyComplaintId = (complaintId)=>{
+    navigator.clipboard.writeText(complaintId);
+    getToastSuccess("Id Coppied Successfully .");
+  }
+
+  const formatDate = (data) => {
+    const date = new Date(data);
+
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 becomes 12
+
+    return (
+      <div>
+        <span className="flex gap-2 items-center"><CiCalendarDate />{String(date.getDate()).padStart(2, '0')+"-"+String(date.getMonth() + 1).padStart(2, '0')+"-"+date.getFullYear()}</span>
+        <span className="flex gap-2 items-center"><MdAccessTime />{hours+":"+minutes+" "+ampm}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -161,9 +218,12 @@ const Table = ({
               </>
             }
             <th scope="col" className="px-6 py-3">
+              Post Date
+            </th>
+            <th scope="col" className="px-6 py-3">
               Status
               <select name="statusType" id="statusType" className="bg-black rounded-2xl ml-2" onChange={onFilterSelect}>
-                <option value="">Select Filter</option>
+                <option value="">Status Type</option>
                 <option value="PENDING">PENDING</option>
                 <option value="ASSIGNED">ASSIGNED</option>
                 <option value="IN_PROGRESS">IN_PROGRESS</option>
@@ -173,16 +233,18 @@ const Table = ({
               </select>
             </th>
               {
-                (userData.current.role==="TECHNICIAN" || userData.current.role==="ADMIN") && 
+                userData.current.role!=="TECHNICIAN"  && 
                   <th scope="col" className="px-6 py-3">TECHNICIAN
-                    <select name="technicianType" id="technicianType" className="bg-black rounded-2xl ml-2" onChange={onFilterSelect}>
-                      <option value="">Select Filter</option>
-                      <option value="NOT ASSIGNED YET">NOT ASSIGNED YET</option>
-                    </select>
+                    {
+                      userData.current.role==="ADMIN" && <select name="technicianType" id="technicianType" className="bg-black rounded-2xl ml-2" onChange={onFilterSelect}>
+                        <option value="">Select Filter</option>
+                        <option value="NOT ASSIGNED YET">NOT ASSIGNED YET</option>
+                      </select>
+                    }
                   </th>
               }
               {
-                (userData.current.role==="USER" || userData.current.role==="ADMIN") && <th>USER</th>
+                userData.current.role!=="USER" && <th>USER</th>
               }
               {
                 (userData.current.role==="USER" || userData.current.role==="ADMIN") && <th scope="col" className="px-6 py-3">Actions</th>
@@ -197,9 +259,20 @@ const Table = ({
                   scope="row"
                   className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                 >
-                  {userData.current.role==="ADMIN"?item.complaintId :item.title}
+                  {userData.current.role==="ADMIN"
+                    ? <div className="flex gap-2">
+                        {getDotedId(item.complaintId)}
+                        <button className="cursor-pointer" onClick={()=>copyComplaintId(item.complaintId)}><IoCopy className="w-5 h-5 hover:text-blue-500"/></button>
+                      </div> 
+                    : item.title
+                  }
                 </th>
                 {userData.current.role!=="ADMIN" && <td className="px-6 py-4 max-w-[300px] break-words">{item.description}</td>}
+                <td className="px-6 py-4">
+                  {
+                    formatDate(item.createdAt)
+                  }
+                </td>
                 <td className="px-6 py-4">
                   {
                     getStatusColumn(item, userData.current.role)

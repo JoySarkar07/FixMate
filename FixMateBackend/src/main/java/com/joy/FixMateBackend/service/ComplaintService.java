@@ -5,6 +5,7 @@ import com.joy.FixMateBackend.io.ComplaintResponse;
 import com.joy.FixMateBackend.io.ComplaintUpdateRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ComplaintService {
     public ComplaintResponse addComplaint(ComplaintRequest request);
@@ -20,4 +21,8 @@ public interface ComplaintService {
     public void deleteComplaint(String complaintId);
 
     public ComplaintResponse updateComplaint(ComplaintUpdateRequest request, String complaintId);
+
+    public Long getComplaintCountOfTechnicianByTechnicianId(String technicianId);
+
+    public Map<String, Long> getComplaintsCount();
 }

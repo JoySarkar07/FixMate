@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaTools, FaHome, FaUserCog, FaChartLine, FaArrowRight } from 'react-icons/fa';
+import { FaUserCog, FaChartLine, FaArrowRight } from 'react-icons/fa';
 import { IoMdNotificationsOutline } from 'react-icons/io';
-import { MdOutlineSupportAgent } from 'react-icons/md';
+import appertment from "../assets/appertment.svg";
 
 const Home = () => {
   const [animated, setAnimated] = useState(false);
@@ -42,9 +42,9 @@ const Home = () => {
           </div>
           <div className={`md:w-1/2 mt-12 md:mt-0 ${animated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} transition-all duration-700 delay-150`}>
             <img 
-              src="https://illustrations.popsy.co/amber/digital-nomad.svg" 
+              src={appertment} 
               alt="Maintenance illustration" 
-              className="w-full max-w-md mx-auto"
+              className="w-full max-w-md mx-auto rounded-2xl"
             />
           </div>
         </div>

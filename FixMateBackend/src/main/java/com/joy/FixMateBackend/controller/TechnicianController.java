@@ -1,9 +1,7 @@
 package com.joy.FixMateBackend.controller;
 
-import com.joy.FixMateBackend.io.TechnicianRequest;
-import com.joy.FixMateBackend.io.TechnicianUserRequest;
-import com.joy.FixMateBackend.io.TechnicianResponse;
-import com.joy.FixMateBackend.io.TechnicianUserResponse;
+import com.joy.FixMateBackend.io.*;
+import com.joy.FixMateBackend.service.ComplaintService;
 import com.joy.FixMateBackend.service.TechnicianService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,12 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 public class TechnicianController {
 
     private final TechnicianService technicianService;
+    private final ComplaintService complaintService;
 
     @PostMapping("/register/technician")
     public TechnicianUserResponse addTechnician(@RequestBody TechnicianUserRequest request){
@@ -61,6 +61,24 @@ public class TechnicianController {
             return technicianService.updateTechnicianStatus(status, technicianId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/technician/{technicianId}")
+    public Long getComplaintCountByTechnicianId(@PathVariable String technicianId){
+        try{
+            return complaintService.getComplaintCountOfTechnicianByTechnicianId(technicianId);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid Technician Id");
+        }
+    }
+
+    @GetMapping("/technician/count")
+    public Map<String, Long> getComplaintCount(){
+        try{
+            return complaintService.getComplaintsCount();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid Technician Id");
         }
     }
 }

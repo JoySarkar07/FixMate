@@ -2,22 +2,23 @@ import { useEffect, useRef, useState } from 'react'
 import SideBar from '../components/SideBar'
 import { getTechnicianComplaints } from '../services/complaintService';
 import Table from '../components/Table';
-import { getTechnicianById, updateTechnicianStatus } from '../services/technicianService';
+import { getComplaintsConuntById, getTechnicianById, updateTechnicianStatus } from '../services/technicianService';
+import { getToastError, getToastSuccess } from '../services/toastService';
 
 const TechDashboard = ()=>{
   const [complaints, setComplaints] = useState([]);
   const [status, setStatus] = useState("AVAILABLE");
+  const [count, setCount] = useState(0);
   const userData = useRef(JSON.parse(localStorage.getItem("authData"))??{});
-
 
   const changeStatus = async (e) =>{
     try{
-        const status = e.target.value;
-        console.log(status);
-        await updateTechnicianStatus(userData.current.userId, {status});
-        setStatus(status);
+      const status = e.target.value;
+      await updateTechnicianStatus(userData.current.userId, {status});
+      setStatus(status);
+      getToastSuccess("Your availability status changed successfully .");
     }catch(e){
-      console.log(e.message);
+      getToastError("Error while updating your availability status .");
     }
   }
 
@@ -26,10 +27,12 @@ const TechDashboard = ()=>{
       try{
         const response = await getTechnicianComplaints(userData.current.userId);
         const technicianResponse = await getTechnicianById(userData.current.userId);
+        const responseCount = await getComplaintsConuntById(userData.current.userId);
         setComplaints(response);
         setStatus(technicianResponse.status);
+        setCount(responseCount);
       }catch(e){
-        console.log(e.message);
+        getToastError("Error fetching technician details .");
       }
     }
 
@@ -58,6 +61,10 @@ const TechDashboard = ()=>{
         <p className="text-xs text-gray-500 mt-2">
           Your status will be visible to your team members and may affect task assignments.
         </p>
+        <span className='border border-green-400 ml-3 mr-1 h-full'></span>
+        <div className='flex gap-3 items-center'>
+          Total Complaints : <div className='bg-black p-2 w-[70px] rounded-2xl'>{count}</div>
+        </div>
       </div>
       <div className={`flex-1/2 bg-gradient-to-br from-violet-900/30 to-gray-800 p-2 rounded-2xl shadow-xl/30 ${complaints.length===0?"flex justify-center items-center":""} overflow-y-auto`}>
         {

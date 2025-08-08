@@ -5,6 +5,7 @@ import RegisterUserSvg from "../assets/register_user.svg";
 import CheckBox from '../components/CheckBox';
 import { registerTechnician } from '../services/technicianService';
 import { register } from '../services/userService';
+import { getToastError, getToastSuccess } from '../services/toastService';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -90,8 +91,9 @@ const Register = () => {
           await register(userData);
         }
         clearFrom();
+        getToastSuccess("New user registered successfully .");
       }catch(e){
-        console.log(e);
+        getToastError("Error occure while registering new User .");
       }finally{
         setIsSubmitting(false);
       }

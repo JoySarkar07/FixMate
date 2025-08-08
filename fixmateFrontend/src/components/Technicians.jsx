@@ -3,6 +3,8 @@ import UserTable from './UserTable'
 import { AdminContext } from '../context/AdminContext'
 import { FaSearch } from 'react-icons/fa';
 import { getComplaintById, updateComplaintById } from '../services/complaintService';
+import toast from 'react-hot-toast';
+import { getToastError, getToastSuccess } from '../services/toastService';
 
 const Technicians = () => {
   const { technicians, complaints, setComplaints } = useContext(AdminContext);
@@ -27,8 +29,9 @@ const Technicians = () => {
         return com;
       })
       setComplaints(updatedComplaints);
+      getToastSuccess("Technician assigned in this complaint .");
     }catch(e){
-      console.log(e.message);
+      getToastError("Technician assigned failed .");
     }finally{
       setIsUpdate(false);
     }
@@ -46,8 +49,9 @@ const Technicians = () => {
         status : response.status,
       })
       setComplaintId("");
+      getToastSuccess("Complaint fetched successfully .");
     }catch(e){
-      console.log(e);
+      getToastError("Error fetching complaints .");
     }finally{
       setIsSearching(false);
     }
