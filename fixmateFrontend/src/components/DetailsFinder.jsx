@@ -2,6 +2,7 @@ import { FaSearch } from "react-icons/fa";
 import businessMan from "../assets/businessMan.svg";
 import { useState } from "react";
 import { getTechnicianById } from "../services/technicianService";
+import { getToastError, getToastSuccess } from "../services/toastService";
 
 const DetailsFinder = () => {
     const [userId, setUserId] = useState("");
@@ -23,8 +24,9 @@ const DetailsFinder = () => {
             const response = await getTechnicianById(userId);
             setUser(response);
             setUserId("");
+            getToastSuccess("Technician Found");
         }catch(e){
-            console.log(e.message);
+            getToastError("Technician not found .");
         }finally{
             setIsSearching(false);
         }

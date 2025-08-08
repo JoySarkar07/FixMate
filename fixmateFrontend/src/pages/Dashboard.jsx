@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import SideBar from '../components/SideBar'
 import Chart from '../components/Chart'
 import Table from '../components/Table'
 import { addComplaint, getUserComplaints, updateComplaintById } from '../services/complaintService'
+import { getToastError, getToastSuccess } from '../services/toastService'
 
 const UserDashboard = ()=>{
   const [complaints, setComplaints] = useState([]);
@@ -12,7 +13,7 @@ const UserDashboard = ()=>{
     description: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const userData = JSON.parse(localStorage.getItem("authData"));
+  const userData = useRef(JSON.parse(localStorage.getItem("authData"))??{});
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,7 +23,8 @@ const UserDashboard = ()=>{
     }));
   };
 
-  const clearForm = ()=>{
+  const clearForm = (e)=>{
+    e.preventDefault();
     setComplaintData({
         complaintId: null,
         title: "",
@@ -35,13 +37,14 @@ const UserDashboard = ()=>{
     setIsSubmitting(true);
     try {
       if (complaintData.complaintId === null) {
-        const response = await addComplaint(userData.userId, complaintData);
+        const response = await addComplaint(userData.current.userId, complaintData);
         setComplaints((prev) => [ response, ...prev]);
         setComplaintData({
           complaintId : null,
           title: "",
           description: "",
         });
+        getToastSuccess("New Complaint added successfully .");
       } else {
         const response = await updateComplaintById(
           complaintData.complaintId,
@@ -57,9 +60,10 @@ const UserDashboard = ()=>{
           title: "",
           description: "",
         });
+        getToastSuccess("Complaint Updated Successfully .");
       }
     } catch (e) {
-      console.log("Some error occured");
+      getToastError("Error while adding or updating complaint .");
     } finally {
       setIsSubmitting(false);
     }
@@ -107,10 +111,10 @@ const UserDashboard = ()=>{
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getUserComplaints(userData.userId);
+        const data = await getUserComplaints(userData.current.userId);
         setComplaints(data);
       } catch (e) {
-        console.error("Error fetching complaints:", e.message);
+        getToastError("Error while fetching complaints .");
       }
     };
 

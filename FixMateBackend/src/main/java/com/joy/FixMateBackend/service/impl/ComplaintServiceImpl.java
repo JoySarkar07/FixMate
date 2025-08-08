@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     @Override
     public List<ComplaintResponse> getAllComplaints() {
-        return complaintRepository.findAll()
+        return complaintRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -109,6 +110,24 @@ public class ComplaintServiceImpl implements ComplaintService {
         exitstingComplaint = complaintRepository.save(exitstingComplaint);
         return convertToResponse(exitstingComplaint);
     }
+
+    public Long getComplaintCountOfTechnicianByTechnicianId(String technicianId){
+        return complaintRepository.countActiveComplaintsByTechnicianId(technicianId);
+    }
+
+    @Override
+    public Map<String, Long> getComplaintsCount() {
+        return complaintRepository.countActiveComplaints()
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
+    }
+
+//    private ComplaintCountResponse convertToComplaintCountResponse(){
+//
+//    }
 
     private UserResponse convertToUserResponse(UserEntity newUser) {
         return UserResponse.builder()

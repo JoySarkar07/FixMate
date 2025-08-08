@@ -18,7 +18,7 @@ const Navbar = () => {
       <div className={`container mx-auto px-6 py-4 flex ${openMenu?"flex-col":"items-center"} justify-between gap-2`}>
         <div className="flex w-full justify-between">
           <div className="flex items-center space-x-2">
-            <FaTools className="text-indigo-600 text-2xl" />
+            <img src="/logo.svg" alt="logo" className="h-10"/>
             <span className="text-xl font-bold text-indigo-800"><Link to="/">FixMate</Link></span>
           </div>
           {
