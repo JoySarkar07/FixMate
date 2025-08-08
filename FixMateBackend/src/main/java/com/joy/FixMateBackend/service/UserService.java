@@ -1,6 +1,5 @@
 package com.joy.FixMateBackend.service;
 
-import com.joy.FixMateBackend.enums.UserRole;
 import com.joy.FixMateBackend.io.AuthRequest;
 import com.joy.FixMateBackend.io.AuthResponse;
 import com.joy.FixMateBackend.io.UserRequest;

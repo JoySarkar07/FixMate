@@ -1,6 +1,5 @@
 package com.joy.FixMateBackend.io;
 
-import com.joy.FixMateBackend.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
